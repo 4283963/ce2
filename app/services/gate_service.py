@@ -1,9 +1,30 @@
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from app.dao import GateDeviceDAO, VehicleDAO, VehicleRecordDAO, ParkingOrderDAO
 from app.utils.common import generate_order_no
+from app.models import db
 
 
 class GateService:
+
+    @staticmethod
+    def _get_or_create_vehicle(plate_number):
+        vehicle = VehicleDAO.get_by_plate(plate_number)
+        if vehicle:
+            return vehicle
+
+        try:
+            vehicle = VehicleDAO.create(
+                plate_number=plate_number,
+                vehicle_type='visitor'
+            )
+            return vehicle
+        except IntegrityError:
+            db.session.rollback()
+            vehicle = VehicleDAO.get_by_plate(plate_number)
+            if vehicle:
+                return vehicle
+            raise
 
     @staticmethod
     def receive_gate_data(plate_number, gate_code, direction, record_time=None):
@@ -44,12 +65,7 @@ class GateService:
         else:
             record_time = datetime.now()
 
-        vehicle = VehicleDAO.get_by_plate(plate_number)
-        if not vehicle:
-            vehicle = VehicleDAO.create(
-                plate_number=plate_number,
-                vehicle_type='visitor'
-            )
+        vehicle = GateService._get_or_create_vehicle(plate_number)
 
         record = VehicleRecordDAO.create(
             plate_number=plate_number,
@@ -70,15 +86,22 @@ class GateService:
         if direction == 'in':
             pending_order = ParkingOrderDAO.get_pending_by_plate(plate_number)
             if not pending_order:
-                order_no = generate_order_no()
-                order = ParkingOrderDAO.create(
-                    order_no=order_no,
-                    plate_number=plate_number,
-                    entry_time=record_time,
-                    status='pending'
-                )
-                result_data['order_no'] = order_no
-                result_data['entry_time'] = record_time.strftime('%Y-%m-%d %H:%M:%S')
+                try:
+                    order_no = generate_order_no()
+                    order = ParkingOrderDAO.create(
+                        order_no=order_no,
+                        plate_number=plate_number,
+                        entry_time=record_time,
+                        status='pending'
+                    )
+                    result_data['order_no'] = order_no
+                    result_data['entry_time'] = record_time.strftime('%Y-%m-%d %H:%M:%S')
+                except IntegrityError:
+                    db.session.rollback()
+                    pending_order = ParkingOrderDAO.get_pending_by_plate(plate_number)
+                    if pending_order:
+                        result_data['order_no'] = pending_order.order_no
+                        result_data['entry_time'] = pending_order.entry_time.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 result_data['order_no'] = pending_order.order_no
                 result_data['entry_time'] = pending_order.entry_time.strftime('%Y-%m-%d %H:%M:%S')
