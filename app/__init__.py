@@ -23,11 +23,16 @@ def create_app(config_class=Config):
         if 'sqlite' in str(engine.url):
             event.listen(engine, 'connect', _setup_sqlite_pragmas)
 
-    from app.controllers import gate_bp, billing_bp, payment_bp, vehicle_bp
+    from app.controllers import (
+        gate_bp, billing_bp, payment_bp, vehicle_bp,
+        blacklist_bp, property_bill_bp
+    )
     app.register_blueprint(gate_bp)
     app.register_blueprint(billing_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(vehicle_bp)
+    app.register_blueprint(blacklist_bp)
+    app.register_blueprint(property_bill_bp)
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):

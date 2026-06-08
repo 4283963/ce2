@@ -146,3 +146,68 @@ class RateConfig(db.Model):
             'max_daily_price': float(self.max_daily_price) if self.max_daily_price else 0.0,
             'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S') if self.updated_at else None
         }
+
+
+class PropertyBill(db.Model):
+    __tablename__ = 'property_bills'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    bill_no = db.Column(db.String(32), nullable=False, unique=True)
+    plate_number = db.Column(db.String(20), nullable=False, index=True)
+    owner_name = db.Column(db.String(50))
+    bill_month = db.Column(db.String(7), nullable=False)
+    total_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
+    paid_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
+    status = db.Column(db.String(20), nullable=False, default='unpaid', index=True)
+    due_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'bill_no': self.bill_no,
+            'plate_number': self.plate_number,
+            'owner_name': self.owner_name,
+            'bill_month': self.bill_month,
+            'total_amount': float(self.total_amount) if self.total_amount else 0.0,
+            'paid_amount': float(self.paid_amount) if self.paid_amount else 0.0,
+            'outstanding_amount': float(self.total_amount - self.paid_amount) if self.total_amount and self.paid_amount else 0.0,
+            'status': self.status,
+            'due_date': self.due_date.strftime('%Y-%m-%d') if self.due_date else None,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
+            'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S') if self.updated_at else None
+        }
+
+
+class InterceptRecord(db.Model):
+    __tablename__ = 'intercept_records'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    plate_number = db.Column(db.String(20), nullable=False, index=True)
+    intercept_time = db.Column(db.DateTime, nullable=False, index=True)
+    intercept_reason = db.Column(db.String(200), nullable=False)
+    order_id = db.Column(db.Integer)
+    gate_code = db.Column(db.String(50))
+    direction = db.Column(db.String(10))
+    status = db.Column(db.String(20), nullable=False, default='intercepted', index=True)
+    handler = db.Column(db.String(50))
+    handle_time = db.Column(db.DateTime)
+    remark = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'plate_number': self.plate_number,
+            'intercept_time': self.intercept_time.strftime('%Y-%m-%d %H:%M:%S') if self.intercept_time else None,
+            'intercept_reason': self.intercept_reason,
+            'order_id': self.order_id,
+            'gate_code': self.gate_code,
+            'direction': self.direction,
+            'status': self.status,
+            'handler': self.handler,
+            'handle_time': self.handle_time.strftime('%Y-%m-%d %H:%M:%S') if self.handle_time else None,
+            'remark': self.remark,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
+        }

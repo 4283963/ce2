@@ -3,9 +3,14 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from datetime import date, datetime
 from app import create_app
 from app.models import db
-from app.dao import RateConfigDAO, GateDeviceDAO, VehicleDAO
+from app.dao import RateConfigDAO, GateDeviceDAO, VehicleDAO, PropertyBillDAO
+
+
+def _parse_date(date_str):
+    return datetime.strptime(date_str, '%Y-%m-%d').date()
 
 
 def init_database():
@@ -36,6 +41,66 @@ def init_database():
             VehicleDAO.create('京A12345', 'resident', '张三', '13800138001')
             VehicleDAO.create('京B67890', 'resident', '李四', '13800138002')
             print('测试车辆数据初始化成功')
+
+        if not PropertyBillDAO.get_by_bill_no('WY202509001'):
+            PropertyBillDAO.create(
+                'WY202509001', '京A12345', '2025-09', 350.00, 350.00,
+                'paid', '张三', _parse_date('2025-10-01')
+            )
+            PropertyBillDAO.create(
+                'WY202510001', '京A12345', '2025-10', 350.00, 350.00,
+                'paid', '张三', _parse_date('2025-11-01')
+            )
+            PropertyBillDAO.create(
+                'WY202511001', '京A12345', '2025-11', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2025-12-01')
+            )
+            PropertyBillDAO.create(
+                'WY202512001', '京A12345', '2025-12', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-01-01')
+            )
+            PropertyBillDAO.create(
+                'WY202601001', '京A12345', '2026-01', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-02-01')
+            )
+            PropertyBillDAO.create(
+                'WY202602001', '京A12345', '2026-02', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-03-01')
+            )
+            PropertyBillDAO.create(
+                'WY202603001', '京A12345', '2026-03', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-04-01')
+            )
+            PropertyBillDAO.create(
+                'WY202604001', '京A12345', '2026-04', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-05-01')
+            )
+            PropertyBillDAO.create(
+                'WY202605001', '京A12345', '2026-05', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-06-01')
+            )
+            PropertyBillDAO.create(
+                'WY202606001', '京A12345', '2026-06', 350.00, 0.00,
+                'unpaid', '张三', _parse_date('2026-07-01')
+            )
+
+            PropertyBillDAO.create(
+                'WY202601002', '京B67890', '2026-01', 420.00, 420.00,
+                'paid', '李四', _parse_date('2026-02-01')
+            )
+            PropertyBillDAO.create(
+                'WY202602002', '京B67890', '2026-02', 420.00, 420.00,
+                'paid', '李四', _parse_date('2026-03-01')
+            )
+            PropertyBillDAO.create(
+                'WY202603002', '京B67890', '2026-03', 420.00, 420.00,
+                'paid', '李四', _parse_date('2026-04-01')
+            )
+            PropertyBillDAO.create(
+                'WY202604002', '京B67890', '2026-04', 420.00, 420.00,
+                'paid', '李四', _parse_date('2026-05-01')
+            )
+            print('物业费账单测试数据初始化成功')
 
         print('数据库初始化完成！')
 
